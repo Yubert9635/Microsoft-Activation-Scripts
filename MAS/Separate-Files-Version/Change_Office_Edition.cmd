@@ -1,12 +1,11 @@
-@set masver=3.4
+@set masver=3.9
 @echo off
 
 
 
 ::============================================================================
 ::
-::   Homepage: mass grave[.]dev
-::      Email: mas.help@outlook.com
+::   Homepage: mass{}grave{dot}dev
 ::
 ::============================================================================
 
@@ -37,6 +36,7 @@ set "_cmdf=%~f0"
 for %%# in (%*) do (
 if /i "%%#"=="re1" set re1=1
 if /i "%%#"=="re2" set re2=1
+if /i "%%#"=="-qedit" (set re1=1&set re2=1)
 )
 
 :: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
@@ -135,6 +135,16 @@ call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%trouble
 goto dk_done
 )
 
+if exist "%Systemdrive%\Users\WDAGUtilityAccount" (
+sc query gcs | find /i "RUNNING" %nul% && (
+%eline%
+echo Windows Sandbox detected.
+echo The script cannot run due to missing licensing components. Aborting...
+echo:
+goto dk_done
+)
+)
+
 if %winbuild% LSS 7600 (
 %eline%
 echo Unsupported OS version detected [%winbuild%].
@@ -190,7 +200,7 @@ goto dk_done
 
 ::pstst $ExecutionContext.SessionState.LanguageMode :pstst
 
-for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[io.file]::ReadAllText('!_batp!') -split ':pstst';iex ($f[1])}" %nul6%') do (set tstresult=%%a)
+for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[System.IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
 
 if /i not "%tstresult%"=="FullLanguage" (
 %eline%
@@ -214,6 +224,9 @@ REM check Powershell core version
 
 cmd /c "%psc% "$PSVersionTable.PSEdition"" | find /i "Core" %nul1% && (
 echo Windows Powershell is needed for MAS but it seems to be replaced with Powershell core. Aborting...
+echo:
+set fixes=%fixes% %mas%in-place_repair_upgrade
+call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
 )
 
@@ -228,13 +241,30 @@ call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_
 goto dk_done
 )
 
+REM check if .NET is working properly
+
+if /i "!tstresult2!"=="FullLanguage" (
+cmd /c "%psc% ""try {[System.AppDomain]::CurrentDomain.GetAssemblies(); [System.Math]::Sqrt(144)} catch {Exit 3}""" %nul%
+if !errorlevel!==3 (
+echo Windows Powershell failed to load .NET command. Aborting...
+echo:
+set fixes=%fixes% %mas%in-place_repair_upgrade
+call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
+goto dk_done
+)
+)
+
 REM check antivirus and other errors
 
 echo PowerShell is not working properly. Aborting...
 
 if /i "!tstresult2!"=="FullLanguage" (
 echo:
-echo Your antivirus software might be blocking the script, or PowerShell on your system might be corrupted.
+echo Your antivirus software might be blocking the script.
+echo:
+sc query sense | find /i "RUNNING" %nul% && (
+echo Installed Antivirus - Microsoft Defender for Endpoint
+)
 cmd /c "%psc% ""$av = Get-WmiObject -Namespace root\SecurityCenter2 -Class AntiVirusProduct; $n = @(); foreach ($i in $av) { $n += $i.displayName }; if ($n) { Write-Host ('Installed Antivirus - ' + ($n -join ', '))}"""
 )
 
@@ -258,7 +288,9 @@ set terminal=
 
 if defined terminal (
 set lines=0
-for /f "skip=2 tokens=2 delims=: " %%A in ('mode con') do if "!lines!"=="0" set lines=%%A
+for /f "skip=3 tokens=* delims=" %%A in ('mode con') do if "!lines!"=="0" (
+for %%B in (%%A) do set lines=%%B
+)
 if !lines! GEQ 100 set terminal=
 )
 
@@ -543,9 +575,10 @@ goto :oe_edition
 :oe_editionchangepre
 
 cls
+set editedition=
 call :ch_getinfo
 call :oe_tempcleanup
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':getlist\:.*';iex ($f[1])"
+%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':getlist\:.*';. ([scriptblock]::Create($f[1]))"
 
 :oe_editionchange
 
@@ -619,7 +652,7 @@ cls
 set suites=
 echo %list% | find /i "Suites" %nul1% && (
 set suites=1
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':getappnames\:.*';iex ($f[1])"
+%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':getappnames\:.*';. ([scriptblock]::Create($f[1]))"
 if not exist %SystemRoot%\Temp\getAppIds.txt (
 %eline%
 echo Failed to generate available apps list.
@@ -661,7 +694,8 @@ if not defined terminal mode 98, 32
 %line%
 echo:
 call :dk_color %Gray% "Target edition: %targetedition%"
-call :dk_color %Gray% "You can exclude the below apps from installation."
+call :dk_color %Gray% "To exclude the apps listed below from installation, toggle them from On to Off."
+if defined editedition call :dk_color %Gray% "Note: The On/Off status below does not reflect the current status of the installed apps."
 %line%
 if defined suites echo:
 if defined Access_st     echo [A] Access           : %Access_st%
@@ -788,7 +822,9 @@ goto :oe_goback
 ::  OfficeClickToRun.exe with productstoadd method is used here to add editions
 ::  It uses delta updates, meaning that since it's using same installed build, it will consume very less Internet
 
-set "c2rcommand="%_c2rExe%" platform=%_oArch% culture=%_lang% productstoadd=%targetedition%.16_%_lang%_x-none cdnbaseurl.16=http://officecdn.microsoft.com/pr/%_updch% baseurl.16=http://officecdn.microsoft.com/pr/%_updch% version.16=%_version% mediatype.16=CDN sourcetype.16=CDN deliverymechanism=%_updch% %targetedition%.excludedapps.16=groove%excludelist% flt.useteamsaddon=disabled flt.usebingaddononinstall=disabled flt.usebingaddononupdate=disabled"
+call :oe_getlangs
+
+set "c2rcommand="%_c2rExe%" platform=%_oArch% culture=%_lang% productstoadd=%targetedition%.16_%_allLangs% cdnbaseurl.16=http://officecdn.microsoft.com/pr/%_updch% baseurl.16=http://officecdn.microsoft.com/pr/%_updch% version.16=%_version% mediatype.16=CDN sourcetype.16=CDN deliverymechanism=%_updch% %targetedition%.excludedapps.16=groove%excludelist% flt.useteamsaddon=disabled flt.usebingaddononinstall=disabled flt.usebingaddononupdate=disabled"
 
 if %change%==1 (
 set "c2rcommand=!c2rcommand! productstoremove=AllProducts"
@@ -860,6 +896,7 @@ goto :oe_goback
 )
 
 set change=0
+set editedition=1
 call :ch_getinfo
 cls
 
@@ -965,13 +1002,8 @@ if %verified%==0 goto :oe_removeedition
 cls
 if not defined terminal mode 105, 32
 
-set _lang=
-echo "%o16c2r_reg%" | find /i "Wow6432Node" %nul1% && (set _tok=10) || (set _tok=9)
-for /f "tokens=%_tok% delims=\" %%a in ('reg query "%o16c2r_reg%\ProductReleaseIDs\%_actconfig%\%targetedition%.16" /f "-" /k ^| findstr /i ".*16\\.*-.*"') do (
-if defined _lang (set "_lang=!_lang!_%%a") else (set "_lang=_%%a")
-)
-
-set "c2rcommand="%_c2rExe%" platform=%_oArch% productstoremove=%targetedition%.16%_lang%"
+call :oe_getlangs %targetedition%
+set "c2rcommand="%_c2rExe%" platform=%_oArch% productstoremove=%targetedition%.16_%_allLangs%"
 
 echo:
 echo Running the below command, please wait...
@@ -1038,20 +1070,19 @@ call :dk_color %Gray% "Installed Office editions: %_oIds%"
 echo:
 
 for %%# in (
-"5440fd1f-7ecb-4221-8110-145efaa6372f_Insider Fast [Beta]  -    Insiders::DevMain   -"
-"64256afe-f5d9-4f86-8936-8840a6a4f5be_Monthly Preview      -    Insiders::CC        -"
-"492350f6-3a01-4f97-b9c0-c7c6ddf67d60_Monthly [Current]    -  Production::CC        -"
-"55336b82-a18d-4dd6-b5f6-9e5095c314a6_Monthly Enterprise   -  Production::MEC       -"
-"b8f9b850-328d-4355-9145-c59439a0c4cf_Semi Annual Preview  -    Insiders::FRDC      -"
-"7ffbc6bf-bc32-4f92-8982-f9dd17fd3114_Semi Annual          -  Production::DC        -"
-"ea4a4090-de26-49d7-93c1-91bff9e53fc3_DevMain Channel      -     Dogfood::DevMain   -"
-"b61285dd-d9f7-41f2-9757-8f61cba4e9c8_Microsoft Elite      -   Microsoft::DevMain   -"
-"f2e724c1-748f-4b47-8fb8-8e0d210e9208_Perpetual2019 VL     -  Production::LTSC      -"
-"1d2d2ea6-1680-4c56-ac58-a441c8c24ff9_Microsoft2019 VL     -   Microsoft::LTSC      -"
-"5030841d-c919-4594-8d2d-84ae4f96e58e_Perpetual2021 VL     -  Production::LTSC2021  -"
-"86752282-5841-4120-ac80-db03ae6b5fdb_Microsoft2021 VL     -   Microsoft::LTSC2021  -"
-"7983bac0-e531-40cf-be00-fd24fe66619c_Perpetual2024 VL     -  Production::LTSC2024  -"
-"c02d8fe6-5242-4da8-972f-82ee55e00671_Microsoft2024 VL     -   Microsoft::LTSC2024  -"
+"5440fd1f-7ecb-4221-8110-145efaa6372f_Beta    / Insider Fast    -   Insiders::DevMain  -"
+"64256afe-f5d9-4f86-8936-8840a6a4f5be_Current / Monthly Preview -   Insiders::CC       -"
+"492350f6-3a01-4f97-b9c0-c7c6ddf67d60_Current / Monthly         - Production::CC       -"
+"55336b82-a18d-4dd6-b5f6-9e5095c314a6_Monthly Enterprise        - Production::MEC      -"
+"7ffbc6bf-bc32-4f92-8982-f9dd17fd3114_Semi Annual Enterprise    - Production::DC       -"
+"ea4a4090-de26-49d7-93c1-91bff9e53fc3_DevMain Channel           -    Dogfood::DevMain  -"
+"b61285dd-d9f7-41f2-9757-8f61cba4e9c8_Microsoft Elite           -  Microsoft::DevMain  -"
+"f2e724c1-748f-4b47-8fb8-8e0d210e9208_Perpetual2019 VL          - Production::LTSC     -"
+"1d2d2ea6-1680-4c56-ac58-a441c8c24ff9_Microsoft2019 VL          -  Microsoft::LTSC     -"
+"5030841d-c919-4594-8d2d-84ae4f96e58e_Perpetual2021 VL          - Production::LTSC2021 -"
+"86752282-5841-4120-ac80-db03ae6b5fdb_Microsoft2021 VL          -  Microsoft::LTSC2021 -"
+"7983bac0-e531-40cf-be00-fd24fe66619c_Perpetual2024 VL          - Production::LTSC2024 -"
+"c02d8fe6-5242-4da8-972f-82ee55e00671_Microsoft2024 VL          -  Microsoft::LTSC2024 -"
 ) do (
 for /f "tokens=1-2 delims=_" %%A in ("%%~#") do (
 set bypass=
@@ -1100,7 +1131,7 @@ if not defined terminal mode 105, 32
 ::  Get build number for the target FFN, using build number with OfficeC2RClient.exe command to trigger updates provides accurate results
 
 set build=
-for /f "delims=" %%a in ('%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':getbuild\:.*';iex ($f[1])" %nul6%') do (set build=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':getbuild\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (set build=%%a)
 echo "%build%" | find /i "16." %nul% || set build=
 
 echo:
@@ -1154,7 +1185,19 @@ goto :oe_goback
 set buildchk=0
 for /f "tokens=3 delims=." %%a in ("%build%") do set "buildchk=%%a"
 
-set "c2rcommand="%_c2rExe%" platform=%_oArch% culture=%_lang% productstoadd=%_firstoId%.16_%_lang%_x-none cdnbaseurl.16=http://officecdn.microsoft.com/pr/%targetFFN% baseurl.16=http://officecdn.microsoft.com/pr/%targetFFN% version.16=%build% mediatype.16=CDN sourcetype.16=CDN deliverymechanism=%targetFFN% %_firstoId%.excludedapps.16=%_firstoIdExcludelist% flt.useteamsaddon=disabled flt.usebingaddononinstall=disabled flt.usebingaddononupdate=disabled"
+call :oe_getlangs %_firstoId%
+
+echo %targetchannel% | find /i "2019 VL" %nul% && (
+for %%A in (en-gb es-mx fr-ca) do (
+echo %_allLangs% | find /i "%%A" %nul% && (
+%eline%
+echo [%%A] language is not supported on the Office 2019 Perpetual VL update channel. Aborting...
+goto :oe_goback
+)
+)
+)
+
+set "c2rcommand="%_c2rExe%" platform=%_oArch% culture=%_lang% productstoadd=%_firstoId%.16_%_allLangs% cdnbaseurl.16=http://officecdn.microsoft.com/pr/%targetFFN% baseurl.16=http://officecdn.microsoft.com/pr/%targetFFN% version.16=%build% mediatype.16=CDN sourcetype.16=CDN deliverymechanism=%targetFFN% %_firstoId%.excludedapps.16=%_firstoIdExcludelist% flt.useteamsaddon=disabled flt.usebingaddononinstall=disabled flt.usebingaddononupdate=disabled"
 set "c2rclientupdate=!c2rcommand! scenario=CLIENTUPDATE"
 
 if %clverchk% LSS %buildchk% (
@@ -1336,6 +1379,27 @@ exit /b
 
 ::========================================================================================================================================
 
+::  Check all the installed languages
+
+:oe_getlangs
+
+if "%1"=="" (
+set langreg=culture
+) else (
+set langreg=%1.16
+)
+
+set _allLangs=
+echo "%o16c2r_reg%" | find /i "Wow6432Node" %nul1% && (set _tok=10) || (set _tok=9)
+for /f "tokens=%_tok% delims=\" %%a in ('reg query "%o16c2r_reg%\ProductReleaseIDs\%_actconfig%\%langreg%" /f "-" /k ^| findstr /i "%langreg%\\.*-.*"') do (
+if defined _allLangs (set "_allLangs=!_allLangs!_%%a") else (set "_allLangs=%%a")
+)
+
+set _allLangs=%_allLangs:.16=%
+exit /b
+
+::========================================================================================================================================
+
 ::  Check Internet connection
 
 :oe_chkinternet
@@ -1482,7 +1546,7 @@ if ($appIdsList.Count -gt 0) {
 set ps=%SysPath%\WindowsPowerShell\v1.0\powershell.exe
 set psc=%ps% -nop -c
 set winbuild=1
-for /f "tokens=6 delims=[]. " %%G in ('ver') do set winbuild=%%G
+for /f "tokens=2 delims=[]" %%G in ('ver') do for /f "tokens=2,3,4 delims=. " %%H in ("%%~G") do set "winbuild=%%J"
 
 set _slexe=sppsvc.exe& set _slser=sppsvc
 if %winbuild% LEQ 6300 (set _slexe=SLsvc.exe& set _slser=SLsvc)
@@ -1552,6 +1616,11 @@ set spperror=%errorlevel%
 if %spperror% NEQ 1056 if %spperror% NEQ 0 (
 %eline%
 echo sc start %_slser% [Error Code: %spperror%]
+if %spperror% EQU 1053 (
+echo:
+call :dk_color %Blue% "Reboot your machine using the restart option and try again."
+call :dk_color %Blue% "If it still does not work, go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
+)
 )
 
 echo:

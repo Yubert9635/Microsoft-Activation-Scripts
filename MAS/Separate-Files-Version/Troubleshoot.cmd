@@ -1,12 +1,11 @@
-@set masver=3.4
+@set masver=3.9
 @echo off
 
 
 
 ::============================================================================
 ::
-::   Homepage: mass grave[.]dev
-::      Email: mas.help@outlook.com
+::   Homepage: mass{}grave{dot}dev
 ::
 ::============================================================================
 
@@ -37,6 +36,7 @@ set "_cmdf=%~f0"
 for %%# in (%*) do (
 if /i "%%#"=="re1" set re1=1
 if /i "%%#"=="re2" set re2=1
+if /i "%%#"=="-qedit" (set re1=1&set re2=1)
 )
 
 :: Re-launch the script with x64 process if it was initiated by x86 process on x64 bit Windows
@@ -135,6 +135,16 @@ call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%trouble
 goto dk_done
 )
 
+if exist "%Systemdrive%\Users\WDAGUtilityAccount" (
+sc query gcs | find /i "RUNNING" %nul% && (
+%eline%
+echo Windows Sandbox detected.
+echo The script cannot run due to missing licensing components. Aborting...
+echo:
+goto dk_done
+)
+)
+
 if %winbuild% LSS 6001 (
 %nceline%
 echo Unsupported OS version detected [%winbuild%].
@@ -207,7 +217,7 @@ goto dk_done
 
 ::pstst $ExecutionContext.SessionState.LanguageMode :pstst
 
-for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[io.file]::ReadAllText('!_batp!') -split ':pstst';iex ($f[1])}" %nul6%') do (set tstresult=%%a)
+for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[System.IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
 
 if /i not "%tstresult%"=="FullLanguage" (
 %eline%
@@ -231,6 +241,9 @@ REM check Powershell core version
 
 cmd /c "%psc% "$PSVersionTable.PSEdition"" | find /i "Core" %nul1% && (
 echo Windows Powershell is needed for MAS but it seems to be replaced with Powershell core. Aborting...
+echo:
+set fixes=%fixes% %mas%in-place_repair_upgrade
+call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
 )
 
@@ -245,13 +258,30 @@ call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_
 goto dk_done
 )
 
+REM check if .NET is working properly
+
+if /i "!tstresult2!"=="FullLanguage" (
+cmd /c "%psc% ""try {[System.AppDomain]::CurrentDomain.GetAssemblies(); [System.Math]::Sqrt(144)} catch {Exit 3}""" %nul%
+if !errorlevel!==3 (
+echo Windows Powershell failed to load .NET command. Aborting...
+echo:
+set fixes=%fixes% %mas%in-place_repair_upgrade
+call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
+goto dk_done
+)
+)
+
 REM check antivirus and other errors
 
 echo PowerShell is not working properly. Aborting...
 
 if /i "!tstresult2!"=="FullLanguage" (
 echo:
-echo Your antivirus software might be blocking the script, or PowerShell on your system might be corrupted.
+echo Your antivirus software might be blocking the script.
+echo:
+sc query sense | find /i "RUNNING" %nul% && (
+echo Installed Antivirus - Microsoft Defender for Endpoint
+)
 cmd /c "%psc% ""$av = Get-WmiObject -Namespace root\SecurityCenter2 -Class AntiVirusProduct; $n = @(); foreach ($i in $av) { $n += $i.displayName }; if ($n) { Write-Host ('Installed Antivirus - ' + ($n -join ', '))}"""
 )
 
@@ -275,7 +305,9 @@ set terminal=
 
 if defined terminal (
 set lines=0
-for /f "skip=2 tokens=2 delims=: " %%A in ('mode con') do if "!lines!"=="0" set lines=%%A
+for /f "skip=3 tokens=* delims=" %%A in ('mode con') do if "!lines!"=="0" (
+for %%B in (%%A) do set lines=%%B
+)
 if !lines! GEQ 100 set terminal=
 )
 
@@ -586,13 +618,47 @@ call :dk_color %Blue% "Rebuilding ClipSVC Licenses..."
 echo:
 
 if %winbuild% LSS 10240 (
-echo ClipSVC license rebuilding is supported only on Windows 10/11 and their Server equivalents.
+echo ClipSVC license rebuilding is supported only on Windows 10/11.
 echo Skipping...
 goto :rebuildspptok
 )
 
 %psc% "(([WMISEARCHER]'SELECT Name FROM SoftwareLicensingProduct WHERE LicenseStatus=1 AND GracePeriodRemaining=0 AND PartialProductKey IS NOT NULL AND LicenseDependsOn is NULL').Get()).Name" %nul2% | findstr /i "Windows" %nul1% && (
 echo Windows is permanently activated.
+echo Skipping...
+goto :rebuildspptok
+)
+
+set _partial=
+set _keymatch=
+for /f "tokens=2 delims==" %%# in ('%psc% "(([WMISEARCHER]'SELECT PartialProductKey FROM SoftwareLicensingProduct WHERE ApplicationID=''55c92734-d682-4d71-983e-d6ec3f16059f'' AND PartialProductKey IS NOT NULL AND LicenseDependsOn is NULL').Get()).PartialProductKey | %% {echo ('PartialProductKey='+$_)}" %nul6%') do set "_partial=%%#"
+for %%# in (8HV2C QPFCT 3V66T PKCKT WXCHW 8TYMD 6F4BT 8HVX7 KD72Y 7CFBY DRR8H P39PB DYJWX MDWWW 9HKR4 M7V2X 2YV77 WT2RQ MHBPB QPF8P 2YV66 VMJ2C DJ4F6 CKFFD YY74H J8JXD BHDCD T6R4W D32MH RRK69 3PJBP) do if /i "%_partial%"=="%%#" set _keymatch=1
+
+if not defined _keymatch (
+echo HWID activation key is not installed.
+echo Skipping...
+goto :rebuildspptok
+)
+
+%psc% "If([Activator]::CreateInstance([Type]::GetTypeFromCLSID([Guid]'{DCB00C01-570F-4A9B-8D69-199FDBA5723B}')).IsConnectedToInternet){Exit 0}Else{Exit 1}"
+if errorlevel 1 (
+echo Internet is not connected.
+echo Skipping...
+goto :rebuildspptok
+)
+
+set resfail=
+for %%# in (
+licensing.mp.microsoft.com/v7.0/licenses/content
+login.live.com/ppsecure/deviceaddcredential.srf
+purchase.mp.microsoft.com/v7.0/users/me/orders
+) do if not defined resfail (
+%psc% "try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; irm https://%%# -Method POST } catch { if ($_.Exception.Response -eq $null) { Write-Host """"[%%#] $($_.Exception.Message)"""" -ForegroundColor Red -BackgroundColor Black; exit 3 } }"
+if !errorlevel!==3 set resfail=1
+)
+
+if defined resfail (
+echo Failed to connect to licensing servers.
 echo Skipping...
 goto :rebuildspptok
 )
@@ -691,6 +757,25 @@ echo:
 call :dk_color %Blue% "Rebuilding SPP licensing tokens..."
 echo:
 
+echo Clearing KMS Cache...
+echo:
+call :_taskclear-cache
+
+%nul% reg query "HKLM\%SPPk%\%_wApp%" && (
+echo Removing KMS38 protection...
+%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':regdel\:.*';. ([scriptblock]::Create($f[1]))"
+%nul% reg delete "HKLM\%SPPk%\%_wApp%" /f
+%nul% reg query "HKLM\%SPPk%\%_wApp%" && (
+call :dk_color %Red% "Failed to remove KMS38 protection."
+) || (
+echo Successfully removed KMS38 protection.
+echo Successfully cleared KMS Cache.
+)
+) || (
+echo Successfully cleared KMS Cache.
+)
+echo:
+
 call :scandat check
 
 if not defined token (
@@ -716,7 +801,7 @@ echo Checking SPP permission related issues...
 call :checkperms
 if defined permerror (
 call :dk_color %Red% "[!permerror!]"
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':fixsppperms\:.*';iex ($f[1])" %nul%
+%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':fixsppperms\:.*';. ([scriptblock]::Create($f[1]))" %nul%
 call :checkperms
 if defined permerror (
 call :dk_color %Red% "[!permerror!] [Failed To Fix]"
@@ -786,8 +871,8 @@ if defined _vis (
 
 echo:
 echo Reinstalling system licenses...
-%psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[io.file]::ReadAllText('!_batp!') -split ':xrm\:.*';iex ($f[1]); ReinstallLicenses" %nul%
-if %errorlevel% NEQ 0 %psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[io.file]::ReadAllText('!_batp!') -split ':xrm\:.*';iex ($f[1]); ReinstallLicenses" %nul%
+%psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
+if %errorlevel% NEQ 0 %psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
 if %errorlevel% EQU 0 (
 echo [Successful]
 ) else (
@@ -893,8 +978,8 @@ for /f "skip=2 tokens=2*" %%a in ('"reg query %_68%\16.0\Common\InstallRoot /v P
 
 for /f "skip=2 tokens=2*" %%a in ('"reg query %_86%\15.0\ClickToRun /v InstallPath" %nul6%') do if exist "%%b\root\Licenses\ProPlus*.xrm-ms" (set "c2r15_86=Office 15.0 C2R x86"      & call :getc2rrepair c2r15repair86 integratedoffice.exe)
 for /f "skip=2 tokens=2*" %%a in ('"reg query %_68%\15.0\ClickToRun /v InstallPath" %nul6%') do if exist "%%b\root\Licenses\ProPlus*.xrm-ms" (set "c2r15_68=Office 15.0 C2R x86/x64"  & call :getc2rrepair c2r15repair68 integratedoffice.exe)
-for /f "skip=2 tokens=2*" %%a in ('"reg query %_86%\ClickToRun /v InstallPath" %nul6%') do if exist "%%b\root\Licenses16\ProPlus*.xrm-ms"    (set "c2r16_86=Office 16.0 C2R x86"      & call :getc2rrepair c2r16repair86 OfficeClickToRun.exe)
-for /f "skip=2 tokens=2*" %%a in ('"reg query %_68%\ClickToRun /v InstallPath" %nul6%') do if exist "%%b\root\Licenses16\ProPlus*.xrm-ms"    (set "c2r16_68=Office 16.0 C2R x86/x64"  & call :getc2rrepair c2r16repair68 OfficeClickToRun.exe)
+for /f "skip=2 tokens=2*" %%a in ('"reg query %_86%\ClickToRun /v InstallPath" %nul6%') do if exist "%%b\root\Licenses16\ProPlus*.xrm-ms"    (set "c2r16_86=Office 16.0 C2R x86"      & call :getc2r16repair c2r16repair86 OfficeClickToRun.exe)
+for /f "skip=2 tokens=2*" %%a in ('"reg query %_68%\ClickToRun /v InstallPath" %nul6%') do if exist "%%b\root\Licenses16\ProPlus*.xrm-ms"    (set "c2r16_68=Office 16.0 C2R x86/x64"  & call :getc2r16repair c2r16repair68 OfficeClickToRun.exe)
 
 set uwp16=
 if %winbuild% GEQ 10240 (
@@ -936,13 +1021,11 @@ echo ________________________________________________________________
 echo:
 )
 
-if %counter% EQU 0 (
 echo:
+if %counter% EQU 0 (
 echo Office ^(2010 and later^) is not installed.
 goto :repairend
-echo:
-) else (
-echo:
+) else if not defined c2r16_68 if not defined c2r16_86 (
 call :dk_color %_Yellow% "A new window will appear, in that window you need to select [Quick Repair] option."
 if defined terminal (
 call :dk_color %_Yellow% "Press [0] to continue..."
@@ -969,16 +1052,16 @@ echo Skipping repair for Office 14.0 C2R...
 echo:
 )
 
-if defined msi14_68 if exist "%msi14repair68%" echo Running - "%msi14repair68%"                    & "%msi14repair68%"
-if defined msi14_86 if exist "%msi14repair86%" echo Running - "%msi14repair86%"                    & "%msi14repair86%"
-if defined msi15_68 if exist "%msi15repair68%" echo Running - "%msi15repair68%"                    & "%msi15repair68%"
-if defined msi15_86 if exist "%msi15repair86%" echo Running - "%msi15repair86%"                    & "%msi15repair86%"
-if defined msi16_68 if exist "%msi16repair68%" echo Running - "%msi16repair68%"                    & "%msi16repair68%"
-if defined msi16_86 if exist "%msi16repair86%" echo Running - "%msi16repair86%"                    & "%msi16repair86%"
-if defined c2r15_68 if exist "%c2r15repair68%" echo Running - "%c2r15repair68%" REPAIRUI RERUNMODE & "%c2r15repair68%" REPAIRUI RERUNMODE
-if defined c2r15_86 if exist "%c2r15repair86%" echo Running - "%c2r15repair86%" REPAIRUI RERUNMODE & "%c2r15repair86%" REPAIRUI RERUNMODE
-if defined c2r16_68 if exist "%c2r16repair68%" echo Running - "%c2r16repair68%" scenario=Repair    & "%c2r16repair68%" scenario=Repair
-if defined c2r16_86 if exist "%c2r16repair86%" echo Running - "%c2r16repair86%" scenario=Repair    & "%c2r16repair86%" scenario=Repair
+if defined msi14_68 if exist "%msi14repair68%" echo Running - "%msi14repair68%"                                        & "%msi14repair68%"
+if defined msi14_86 if exist "%msi14repair86%" echo Running - "%msi14repair86%"                                        & "%msi14repair86%"
+if defined msi15_68 if exist "%msi15repair68%" echo Running - "%msi15repair68%"                                        & "%msi15repair68%"
+if defined msi15_86 if exist "%msi15repair86%" echo Running - "%msi15repair86%"                                        & "%msi15repair86%"
+if defined msi16_68 if exist "%msi16repair68%" echo Running - "%msi16repair68%"                                        & "%msi16repair68%"
+if defined msi16_86 if exist "%msi16repair86%" echo Running - "%msi16repair86%"                                        & "%msi16repair86%"
+if defined c2r15_68 if exist "%c2r15repair68%" echo Running - "%c2r15repair68%" REPAIRUI RERUNMODE                     & "%c2r15repair68%" REPAIRUI RERUNMODE
+if defined c2r15_86 if exist "%c2r15repair86%" echo Running - "%c2r15repair86%" REPAIRUI RERUNMODE                     & "%c2r15repair86%" REPAIRUI RERUNMODE
+if defined c2r16_68 if exist "%c2r16repair68%" echo Running - "%c2r16repair68%" Scenario=Repair RepairType=QuickRepair & "%c2r16repair68%" Scenario=Repair RepairType=QuickRepair
+if defined c2r16_86 if exist "%c2r16repair86%" echo Running - "%c2r16repair86%" Scenario=Repair RepairType=QuickRepair & "%c2r16repair86%" Scenario=Repair RepairType=QuickRepair
 
 :repairend
 
@@ -995,6 +1078,13 @@ for %%# in (X86 X64) do (
 if exist "%systemdrive%\Program Files\Microsoft Office 15\Client%%#\%2" (
 set "%1=%systemdrive%\Program Files\Microsoft Office 15\Client%%#\%2"
 )
+)
+exit /b
+
+:getc2r16repair
+
+for %%# in (%_68% %_86%) do (
+for /f "skip=2 tokens=2*" %%a in ('"reg query %%#\ClickToRun\Configuration /v ClientFolder" %nul6%') do if exist "%%b\%2" (set "%1=%%b\%2")
 )
 exit /b
 
@@ -1254,6 +1344,59 @@ exit /b
 
 ::========================================================================================================================================
 
+::  Clean existing K-M-S cache from the registry
+
+:_taskclear-cache
+
+set w=
+for %%# in (SppE%w%xtComObj.exe sppsvc.exe SLsvc.exe) do (
+reg delete "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Ima%w%ge File Execu%w%tion Options\%%#" /f %nul%
+)
+
+set "OPPk=SOFTWARE\Microsoft\OfficeSoftwareProtectionPlatform"
+
+if %winbuild% LSS 7600 (
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SL" %nul% && (
+set "SPPk=SOFTWARE\Microsoft\Windows NT\CurrentVersion\SL"
+)
+)
+if not defined SPPk (
+set "SPPk=SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform"
+)
+
+set "slp=SoftwareLicensingProduct"
+set "ospp=OfficeSoftwareProtectionProduct"
+
+set "_wApp=55c92734-d682-4d71-983e-d6ec3f16059f"
+set "_oApp=0ff1ce15-a989-479d-af46-f275c6370663"
+set "_oA14=59a52881-a989-479d-af46-f275c6370663"
+
+%nul% reg delete "HKLM\%SPPk%" /f /v KeyManagementServiceName
+%nul% reg delete "HKLM\%SPPk%" /f /v KeyManagementServiceName /reg:32
+%nul% reg delete "HKLM\%SPPk%" /f /v KeyManagementServicePort
+%nul% reg delete "HKLM\%SPPk%" /f /v KeyManagementServicePort /reg:32
+%nul% reg delete "HKLM\%SPPk%" /f /v DisableDnsPublishing
+%nul% reg delete "HKLM\%SPPk%" /f /v DisableKeyManagementServiceHostCaching
+%nul% reg delete "HKLM\%SPPk%\%_wApp%" /f
+if %winbuild% GEQ 9200 (
+%nul% reg delete "HKLM\%SPPk%\%_oApp%" /f
+%nul% reg delete "HKLM\%SPPk%\%_oApp%" /f /reg:32
+)
+if %winbuild% GEQ 9600 (
+%nul% reg delete "HKU\S-1-5-20\%SPPk%\%_wApp%" /f
+%nul% reg delete "HKU\S-1-5-20\%SPPk%\%_oApp%" /f
+)
+%nul% reg delete "HKLM\%OPPk%" /f /v KeyManagementServiceName
+%nul% reg delete "HKLM\%OPPk%" /f /v KeyManagementServicePort
+%nul% reg delete "HKLM\%OPPk%" /f /v DisableDnsPublishing
+%nul% reg delete "HKLM\%OPPk%" /f /v DisableKeyManagementServiceHostCaching
+%nul% reg delete "HKLM\%OPPk%\%_oA14%" /f
+%nul% reg delete "HKLM\%OPPk%\%_oApp%" /f
+
+exit /b
+
+::========================================================================================================================================
+
 ::  Fix SPP related registry and folder permissions
 
 :fixsppperms:
@@ -1433,7 +1576,7 @@ exit /b
 
 :regownstart
 
-%psc% "$f=[io.file]::ReadAllText('!_batp!') -split ':regown\:.*';iex ($f[1]);"
+%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':regown\:.*';. ([scriptblock]::Create($f[1]));"
 exit /b
 
 ::  Below code takes ownership of a volatile registry key and deletes it
@@ -1462,6 +1605,36 @@ $rule = New-Object System.Security.AccessControl.RegistryAccessRule($Admin,"Full
 $acl.SetAccessRule($rule)
 $key.SetAccessControl($acl)
 :regown:
+
+::========================================================================================================================================
+
+::  This code runs to undo below registry key KMS38 protection
+::  HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\55c92734-d682-4d71-983e-d6ec3f16059f
+
+::  This option is not used in KMS38 anymore, it's here only to remove previous versions protection.
+
+:regdel:
+param (
+    [switch]$protect
+)
+
+$SID = New-Object System.Security.Principal.SecurityIdentifier('S-1-5-32-544')
+$Admin = ($SID.Translate([System.Security.Principal.NTAccount])).Value
+
+if($protect) {
+$ruleArgs = @("$Admin", "Delete, SetValue", "ContainerInherit", "None", "Deny")
+} else {
+$ruleArgs = @("$Admin", "FullControl", "Allow")
+}
+
+$path = 'SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\55c92734-d682-4d71-983e-d6ec3f16059f'
+$key = [Microsoft.Win32.RegistryKey]::OpenBaseKey('LocalMachine', 'Registry64').OpenSubKey($path, 'ReadWriteSubTree', 'ChangePermissions')
+$acl = $key.GetAccessControl()
+
+$rule = [System.Security.AccessControl.RegistryAccessRule]::new.Invoke($ruleArgs)
+$acl.ResetAccessRule($rule)
+$key.SetAccessControl($acl)
+:regdel:
 
 ::========================================================================================================================================
 
@@ -1521,7 +1694,7 @@ exit /b
 set ps=%SysPath%\WindowsPowerShell\v1.0\powershell.exe
 set psc=%ps% -nop -c
 set winbuild=1
-for /f "tokens=6 delims=[]. " %%G in ('ver') do set winbuild=%%G
+for /f "tokens=2 delims=[]" %%G in ('ver') do for /f "tokens=2,3,4 delims=. " %%H in ("%%~G") do set "winbuild=%%J"
 
 set _slexe=sppsvc.exe& set _slser=sppsvc
 if %winbuild% LEQ 6300 (set _slexe=SLsvc.exe& set _slser=SLsvc)
