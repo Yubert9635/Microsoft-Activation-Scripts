@@ -1,11 +1,11 @@
-@set masver=3.9
+@set masver=3.11
 @echo off
 
 
 
 ::============================================================================
 ::
-::   Homepage: mass{}grave{dot}dev
+::   Homepage: m{}assgrave{dot}dev
 ::
 ::============================================================================
 
@@ -59,9 +59,9 @@ exit /b
 ::========================================================================================================================================
 
 set "blank="
-set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
-set "github=ht%blank%tps%blank%://github.com/massgra%blank%vel/Micro%blank%soft-Acti%blank%vation-Scripts"
-set "selfgit=ht%blank%tps%blank%://git.acti%blank%vated.win/massg%blank%rave/Micr%blank%osoft-Act%blank%ivation-Scripts"
+set "mas=ht%blank%tps%blank%://m%blank%ass%blank%grave.dev/"
+set "github=ht%blank%tps%blank%://github.com/m%blank%assgra%blank%vel/Micro%blank%soft-Acti%blank%vation-Scripts"
+set "selfgit=ht%blank%tps%blank%://git.acti%blank%vated.win/Micr%blank%osoft-Act%blank%ivation-Scripts"
 
 ::  Check if Null service is working, it's important for the batch script
 
@@ -217,7 +217,7 @@ goto dk_done
 
 ::pstst $ExecutionContext.SessionState.LanguageMode :pstst
 
-for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[System.IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
+for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
 
 if /i not "%tstresult%"=="FullLanguage" (
 %eline%
@@ -231,7 +231,6 @@ REM check LanguageMode
 echo: !tstresult2! | findstr /i "ConstrainedLanguage RestrictedLanguage NoLanguage" %nul1% && (
 echo FullLanguage mode not found in PowerShell. Aborting...
 echo If you have applied restrictions on Powershell then undo those changes.
-echo:
 set fixes=%fixes% %mas%fix_powershell
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%fix_powershell"
 goto dk_done
@@ -241,7 +240,6 @@ REM check Powershell core version
 
 cmd /c "%psc% "$PSVersionTable.PSEdition"" | find /i "Core" %nul1% && (
 echo Windows Powershell is needed for MAS but it seems to be replaced with Powershell core. Aborting...
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
@@ -252,7 +250,6 @@ REM check for Mal-ware that may cause issues with Powershell
 for /r "%ProgramFiles%\" %%f in (secureboot.exe) do if exist "%%f" (
 echo "%%f"
 echo Mal%blank%ware found, PowerShell is not working properly.
-echo:
 set fixes=%fixes% %mas%remove_mal%w%ware
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_mal%w%ware"
 goto dk_done
@@ -264,7 +261,6 @@ if /i "!tstresult2!"=="FullLanguage" (
 cmd /c "%psc% ""try {[System.AppDomain]::CurrentDomain.GetAssemblies(); [System.Math]::Sqrt(144)} catch {Exit 3}""" %nul%
 if !errorlevel!==3 (
 echo Windows Powershell failed to load .NET command. Aborting...
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
@@ -285,7 +281,6 @@ echo Installed Antivirus - Microsoft Defender for Endpoint
 cmd /c "%psc% ""$av = Get-WmiObject -Namespace root\SecurityCenter2 -Class AntiVirusProduct; $n = @(); foreach ($i in $av) { $n += $i.displayName }; if ($n) { Write-Host ('Installed Antivirus - ' + ($n -join ', '))}"""
 )
 
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -763,7 +758,7 @@ call :_taskclear-cache
 
 %nul% reg query "HKLM\%SPPk%\%_wApp%" && (
 echo Removing KMS38 protection...
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':regdel\:.*';. ([scriptblock]::Create($f[1]))"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':regdel\:.*';. ([scriptblock]::Create($f[1]))"
 %nul% reg delete "HKLM\%SPPk%\%_wApp%" /f
 %nul% reg query "HKLM\%SPPk%\%_wApp%" && (
 call :dk_color %Red% "Failed to remove KMS38 protection."
@@ -801,7 +796,7 @@ echo Checking SPP permission related issues...
 call :checkperms
 if defined permerror (
 call :dk_color %Red% "[!permerror!]"
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':fixsppperms\:.*';. ([scriptblock]::Create($f[1]))" %nul%
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':fixsppperms\:.*';. ([scriptblock]::Create($f[1]))" %nul%
 call :checkperms
 if defined permerror (
 call :dk_color %Red% "[!permerror!] [Failed To Fix]"
@@ -871,8 +866,8 @@ if defined _vis (
 
 echo:
 echo Reinstalling system licenses...
-%psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
-if %errorlevel% NEQ 0 %psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
+%psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
+if %errorlevel% NEQ 0 %psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
 if %errorlevel% EQU 0 (
 echo [Successful]
 ) else (
@@ -1165,7 +1160,6 @@ sc query Winmgmt | find /i "STOPPED" %nul% && (
 echo [Successful]
 ) || (
 call :dk_color %Red% "[Failed]"
-echo:
 call :dk_color %Blue% "Its recommended to select [Restart] option and then apply Fix WMI option again."
 echo %line%
 echo:
@@ -1576,7 +1570,7 @@ exit /b
 
 :regownstart
 
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':regown\:.*';. ([scriptblock]::Create($f[1]));"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':regown\:.*';. ([scriptblock]::Create($f[1]));"
 exit /b
 
 ::  Below code takes ownership of a volatile registry key and deletes it

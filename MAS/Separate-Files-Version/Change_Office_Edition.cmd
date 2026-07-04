@@ -1,11 +1,11 @@
-@set masver=3.9
+@set masver=3.11
 @echo off
 
 
 
 ::============================================================================
 ::
-::   Homepage: mass{}grave{dot}dev
+::   Homepage: m{}assgrave{dot}dev
 ::
 ::============================================================================
 
@@ -59,9 +59,9 @@ exit /b
 ::========================================================================================================================================
 
 set "blank="
-set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
-set "github=ht%blank%tps%blank%://github.com/massgra%blank%vel/Micro%blank%soft-Acti%blank%vation-Scripts"
-set "selfgit=ht%blank%tps%blank%://git.acti%blank%vated.win/massg%blank%rave/Micr%blank%osoft-Act%blank%ivation-Scripts"
+set "mas=ht%blank%tps%blank%://m%blank%ass%blank%grave.dev/"
+set "github=ht%blank%tps%blank%://github.com/m%blank%assgra%blank%vel/Micro%blank%soft-Acti%blank%vation-Scripts"
+set "selfgit=ht%blank%tps%blank%://git.acti%blank%vated.win/Micr%blank%osoft-Act%blank%ivation-Scripts"
 
 ::  Check if Null service is working, it's important for the batch script
 
@@ -200,7 +200,7 @@ goto dk_done
 
 ::pstst $ExecutionContext.SessionState.LanguageMode :pstst
 
-for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[System.IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
+for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
 
 if /i not "%tstresult%"=="FullLanguage" (
 %eline%
@@ -214,7 +214,6 @@ REM check LanguageMode
 echo: !tstresult2! | findstr /i "ConstrainedLanguage RestrictedLanguage NoLanguage" %nul1% && (
 echo FullLanguage mode not found in PowerShell. Aborting...
 echo If you have applied restrictions on Powershell then undo those changes.
-echo:
 set fixes=%fixes% %mas%fix_powershell
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%fix_powershell"
 goto dk_done
@@ -224,7 +223,6 @@ REM check Powershell core version
 
 cmd /c "%psc% "$PSVersionTable.PSEdition"" | find /i "Core" %nul1% && (
 echo Windows Powershell is needed for MAS but it seems to be replaced with Powershell core. Aborting...
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
@@ -235,7 +233,6 @@ REM check for Mal-ware that may cause issues with Powershell
 for /r "%ProgramFiles%\" %%f in (secureboot.exe) do if exist "%%f" (
 echo "%%f"
 echo Mal%blank%ware found, PowerShell is not working properly.
-echo:
 set fixes=%fixes% %mas%remove_mal%w%ware
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_mal%w%ware"
 goto dk_done
@@ -247,7 +244,6 @@ if /i "!tstresult2!"=="FullLanguage" (
 cmd /c "%psc% ""try {[System.AppDomain]::CurrentDomain.GetAssemblies(); [System.Math]::Sqrt(144)} catch {Exit 3}""" %nul%
 if !errorlevel!==3 (
 echo Windows Powershell failed to load .NET command. Aborting...
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
@@ -268,7 +264,6 @@ echo Installed Antivirus - Microsoft Defender for Endpoint
 cmd /c "%psc% ""$av = Get-WmiObject -Namespace root\SecurityCenter2 -Class AntiVirusProduct; $n = @(); foreach ($i in $av) { $n += $i.displayName }; if ($n) { Write-Host ('Installed Antivirus - ' + ($n -join ', '))}"""
 )
 
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -397,7 +392,6 @@ if %_wmic% EQU 0 set "chkedi=for /f "tokens=2 delims==" %%a in ('%psc% "(([WMISE
 if %osedition%==0 (
 %eline%
 echo Failed to detect OS Edition. Aborting...
-echo:
 call :dk_color %Blue% "To fix this issue, activate Windows from the main menu."
 goto dk_done
 )
@@ -417,7 +411,6 @@ if not defined o16c2r_reg (
 %eline%
 echo Office C2R 2016 or later is not installed, which is required for this script.
 echo Download and install Office from below URL and try again.
-echo:
 set fixes=%fixes% %mas%genuine-installation-media
 call :dk_color %_Yellow% "%mas%genuine-installation-media"
 goto dk_done
@@ -434,7 +427,6 @@ if %verchk% LSS 9029 (
 echo Installed Office version is %_version%.
 echo Minimum required version is 16.0.9029.2167
 echo Aborting...
-echo:
 call :dk_color %Blue% "Download and install latest Office from below URL and try again."
 set fixes=%fixes% %mas%genuine-installation-media
 call :dk_color %_Yellow% "%mas%genuine-installation-media"
@@ -457,7 +449,6 @@ _masterxml
 if not defined %%A (
 %eline%
 echo Failed to find %%A. Aborting...
-echo:
 call :dk_color %Blue% "Download and install Office from below URL and try again."
 set fixes=%fixes% %mas%genuine-installation-media
 call :dk_color %_Yellow% "%mas%genuine-installation-media"
@@ -470,7 +461,6 @@ if %winbuild% LSS 10240 if defined ltscfound (
 echo Installed Office appears to be from the Volume channel %ltsc19%%ltsc21%%ltsc24%,
 echo which is not officially supported on your Windows build version %winbuild%.
 echo Aborting...
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -484,7 +474,6 @@ if defined unsupbuild (
 %eline%
 echo Unsupported Office %verchk% is installed on your Windows build version %winbuild%.
 echo Aborting...
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -578,7 +567,7 @@ cls
 set editedition=
 call :ch_getinfo
 call :oe_tempcleanup
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':getlist\:.*';. ([scriptblock]::Create($f[1]))"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':getlist\:.*';. ([scriptblock]::Create($f[1]))"
 
 :oe_editionchange
 
@@ -591,7 +580,6 @@ mode 98, 45
 if not exist %SystemRoot%\Temp\%list%.txt (
 %eline%
 echo Failed to generate available editions list.
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto :oe_goback
@@ -652,11 +640,10 @@ cls
 set suites=
 echo %list% | find /i "Suites" %nul1% && (
 set suites=1
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':getappnames\:.*';. ([scriptblock]::Create($f[1]))"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':getappnames\:.*';. ([scriptblock]::Create($f[1]))"
 if not exist %SystemRoot%\Temp\getAppIds.txt (
 %eline%
 echo Failed to generate available apps list.
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto :oe_goback
@@ -686,6 +673,11 @@ if defined Lync_st set Lync_st=Off
 set OneDrive_st=Off
 if defined suites (set Teams_st=Off) else (set Teams_st=)
 
+set OutlookForWindows_st=
+if %winbuild% GEQ 19041 if defined Outlook_st echo %targetedition% | find /i "O365" %nul1% && (
+set OutlookForWindows_st=Off
+)
+
 :oe_excludeapps
 
 cls
@@ -698,19 +690,20 @@ call :dk_color %Gray% "To exclude the apps listed below from installation, toggl
 if defined editedition call :dk_color %Gray% "Note: The On/Off status below does not reflect the current status of the installed apps."
 %line%
 if defined suites echo:
-if defined Access_st     echo [A] Access           : %Access_st%
-if defined Excel_st      echo [E] Excel            : %Excel_st%
-if defined OneNote_st    echo [N] OneNote          : %OneNote_st%
-if defined Outlook_st    echo [O] Outlook          : %Outlook_st%
-if defined PowerPoint_st echo [P] PowerPoint       : %PowerPoint_st%
-if defined Project_st    echo [J] Project          : %Project_st%
-if defined Publisher_st  echo [R] Publisher        : %Publisher_st%
-if defined Visio_st      echo [V] Visio            : %Visio_st%
-if defined Word_st       echo [W] Word             : %Word_st%
+if defined Access_st            echo [A] Access              : %Access_st%
+if defined Excel_st             echo [E] Excel               : %Excel_st%
+if defined OneNote_st           echo [N] OneNote             : %OneNote_st%
+if defined Outlook_st           echo [O] Outlook ^(Classic^)   : %Outlook_st%
+if defined PowerPoint_st        echo [P] PowerPoint          : %PowerPoint_st%
+if defined Project_st           echo [J] Project             : %Project_st%
+if defined Publisher_st         echo [R] Publisher           : %Publisher_st%
+if defined Visio_st             echo [V] Visio               : %Visio_st%
+if defined Word_st              echo [W] Word                : %Word_st%
 echo:
-if defined Lync_st       echo [L] SkypeForBusiness : %Lync_st%
-if defined OneDrive_st   echo [D] OneDrive         : %OneDrive_st%
-if defined Teams_st      echo [T] Teams            : %Teams_st%
+if defined Lync_st              echo [L] SkypeForBusiness    : %Lync_st%
+if defined OutlookForWindows_st echo [K] Outlook ^(New^)       : %OutlookForWindows_st%
+if defined OneDrive_st          echo [D] OneDrive            : %OneDrive_st%
+if defined Teams_st             echo [T] Teams               : %Teams_st%
 %line%
 echo:
 echo [1] Continue
@@ -718,22 +711,23 @@ echo [0] Go Back
 %line%
 echo:
 call :dk_color %_Green% "Choose a menu option using your keyboard:"
-choice /C:AENOPJRVWLDT10 /N
+choice /C:AENOPJRVWLKDT10 /N
 set _el=!errorlevel!
-if !_el!==14 goto :oemenu
-if !_el!==13 call :excludelist & goto :oe_editionchangefinal
-if !_el!==12 if defined Teams_st      (if "%Teams_st%"=="Off"      (set Teams_st=ON)      else (set Teams_st=Off))
-if !_el!==11 if defined OneDrive_st   (if "%OneDrive_st%"=="Off"   (set OneDrive_st=ON)   else (set OneDrive_st=Off))
-if !_el!==10 if defined Lync_st       (if "%Lync_st%"=="Off"       (set Lync_st=ON)       else (set Lync_st=Off))
-if !_el!==9  if defined Word_st       (if "%Word_st%"=="Off"       (set Word_st=ON)       else (set Word_st=Off))
-if !_el!==8  if defined Visio_st      (if "%Visio_st%"=="Off"      (set Visio_st=ON)      else (set Visio_st=Off))
-if !_el!==7  if defined Publisher_st  (if "%Publisher_st%"=="Off"  (set Publisher_st=ON)  else (set Publisher_st=Off))
-if !_el!==6  if defined Project_st    (if "%Project_st%"=="Off"    (set Project_st=ON)    else (set Project_st=Off))
-if !_el!==5  if defined PowerPoint_st (if "%PowerPoint_st%"=="Off" (set PowerPoint_st=ON) else (set PowerPoint_st=Off))
-if !_el!==4  if defined Outlook_st    (if "%Outlook_st%"=="Off"    (set Outlook_st=ON)    else (set Outlook_st=Off))
-if !_el!==3  if defined OneNote_st    (if "%OneNote_st%"=="Off"    (set OneNote_st=ON)    else (set OneNote_st=Off))
-if !_el!==2  if defined Excel_st      (if "%Excel_st%"=="Off"      (set Excel_st=ON)      else (set Excel_st=Off))
-if !_el!==1  if defined Access_st     (if "%Access_st%"=="Off"     (set Access_st=ON)     else (set Access_st=Off))
+if !_el!==15 goto :oemenu
+if !_el!==14 call :excludelist & goto :oe_editionchangefinal
+if !_el!==13 if defined Teams_st             (if "%Teams_st%"=="Off"             (set Teams_st=ON)             else (set Teams_st=Off))
+if !_el!==12 if defined OneDrive_st          (if "%OneDrive_st%"=="Off"          (set OneDrive_st=ON)          else (set OneDrive_st=Off))
+if !_el!==11 if defined OutlookForWindows_st (if "%OutlookForWindows_st%"=="Off" (set OutlookForWindows_st=ON) else (set OutlookForWindows_st=Off))
+if !_el!==10 if defined Lync_st              (if "%Lync_st%"=="Off"              (set Lync_st=ON)              else (set Lync_st=Off))
+if !_el!==9  if defined Word_st              (if "%Word_st%"=="Off"              (set Word_st=ON)              else (set Word_st=Off))
+if !_el!==8  if defined Visio_st             (if "%Visio_st%"=="Off"             (set Visio_st=ON)             else (set Visio_st=Off))
+if !_el!==7  if defined Publisher_st         (if "%Publisher_st%"=="Off"         (set Publisher_st=ON)         else (set Publisher_st=Off))
+if !_el!==6  if defined Project_st           (if "%Project_st%"=="Off"           (set Project_st=ON)           else (set Project_st=Off))
+if !_el!==5  if defined PowerPoint_st        (if "%PowerPoint_st%"=="Off"        (set PowerPoint_st=ON)        else (set PowerPoint_st=Off))
+if !_el!==4  if defined Outlook_st           (if "%Outlook_st%"=="Off"           (set Outlook_st=ON)           else (set Outlook_st=Off))
+if !_el!==3  if defined OneNote_st           (if "%OneNote_st%"=="Off"           (set OneNote_st=ON)           else (set OneNote_st=Off))
+if !_el!==2  if defined Excel_st             (if "%Excel_st%"=="Off"             (set Excel_st=ON)             else (set Excel_st=Off))
+if !_el!==1  if defined Access_st            (if "%Access_st%"=="Off"            (set Access_st=ON)            else (set Access_st=Off))
 goto :oe_excludeapps
 
 :excludelist
@@ -750,6 +744,7 @@ publisher
 visio
 word
 lync
+outlookforwindows
 onedrive
 teams
 ) do (
@@ -809,7 +804,6 @@ if /i "%_lang%"=="%%#" set langmatched=1
 if not defined langmatched (
 %eline%
 echo %_lang% language is not available for Project/Visio apps.
-echo:
 call :dk_color %Blue% "Install Office in the supported language for Project/Visio from the below URL."
 set fixes=%fixes% %mas%genuine-installation-media
 call :dk_color %_Yellow% "%mas%genuine-installation-media"
@@ -1131,7 +1125,7 @@ if not defined terminal mode 105, 32
 ::  Get build number for the target FFN, using build number with OfficeC2RClient.exe command to trigger updates provides accurate results
 
 set build=
-for /f "delims=" %%a in ('%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':getbuild\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (set build=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':getbuild\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (set build=%%a)
 echo "%build%" | find /i "16." %nul% || set build=
 
 echo:
@@ -1176,7 +1170,6 @@ goto :oe_goback
 if not defined build (
 %eline%
 call :dk_color %Red% "Failed to detect build number for the target FFN."
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto :oe_goback
@@ -1214,7 +1207,6 @@ for /l %%i in (1,1,30) do (if !clverchk! LSS %buildchk% (call :ch_getinfo&timeou
 if %clverchk% LSS %buildchk% (
 echo:
 call :dk_color %Red% "Failed to update Office C2R client. Aborting..."
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto :oe_goback
@@ -1617,7 +1609,6 @@ if %spperror% NEQ 1056 if %spperror% NEQ 0 (
 %eline%
 echo sc start %_slser% [Error Code: %spperror%]
 if %spperror% EQU 1053 (
-echo:
 call :dk_color %Blue% "Reboot your machine using the restart option and try again."
 call :dk_color %Blue% "If it still does not work, go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
 )

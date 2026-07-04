@@ -1,11 +1,11 @@
-@set masver=3.9
+@set masver=3.11
 @echo off
 
 
 
 ::============================================================================
 ::
-::   Homepage: mass{}grave{dot}dev
+::   Homepage: m{}assgrave{dot}dev
 ::
 ::============================================================================
 
@@ -133,9 +133,9 @@ set "nul="
 ::========================================================================================================================================
 
 set "blank="
-set "mas=ht%blank%tps%blank%://mass%blank%grave.dev/"
-set "github=ht%blank%tps%blank%://github.com/massgra%blank%vel/Micro%blank%soft-Acti%blank%vation-Scripts"
-set "selfgit=ht%blank%tps%blank%://git.acti%blank%vated.win/massg%blank%rave/Micr%blank%osoft-Act%blank%ivation-Scripts"
+set "mas=ht%blank%tps%blank%://m%blank%ass%blank%grave.dev/"
+set "github=ht%blank%tps%blank%://github.com/m%blank%assgra%blank%vel/Micro%blank%soft-Acti%blank%vation-Scripts"
+set "selfgit=ht%blank%tps%blank%://git.acti%blank%vated.win/Micr%blank%osoft-Act%blank%ivation-Scripts"
 
 ::  Check if Null service is working, it's important for the batch script
 
@@ -212,7 +212,6 @@ call :dk_setvar
 if %winbuild% EQU 1 (
 %eline%
 echo Failed to detect Windows build number.
-echo:
 setlocal EnableDelayedExpansion
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
@@ -313,7 +312,7 @@ goto dk_done
 
 ::pstst $ExecutionContext.SessionState.LanguageMode :pstst
 
-for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[System.IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
+for /f "delims=" %%a in ('%psc% "if ($PSVersionTable.PSEdition -ne 'Core') {$f=[IO.File]::ReadAllText('!_batp!') -split ':pstst';. ([scriptblock]::Create($f[1]))}" %nul6%') do (set tstresult=%%a)
 
 if /i not "%tstresult%"=="FullLanguage" (
 %eline%
@@ -327,7 +326,6 @@ REM check LanguageMode
 echo: !tstresult2! | findstr /i "ConstrainedLanguage RestrictedLanguage NoLanguage" %nul1% && (
 echo FullLanguage mode not found in PowerShell. Aborting...
 echo If you have applied restrictions on Powershell then undo those changes.
-echo:
 set fixes=%fixes% %mas%fix_powershell
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%fix_powershell"
 goto dk_done
@@ -337,7 +335,6 @@ REM check Powershell core version
 
 cmd /c "%psc% "$PSVersionTable.PSEdition"" | find /i "Core" %nul1% && (
 echo Windows Powershell is needed for MAS but it seems to be replaced with Powershell core. Aborting...
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
@@ -348,7 +345,6 @@ REM check for Mal-ware that may cause issues with Powershell
 for /r "%ProgramFiles%\" %%f in (secureboot.exe) do if exist "%%f" (
 echo "%%f"
 echo Mal%blank%ware found, PowerShell is not working properly.
-echo:
 set fixes=%fixes% %mas%remove_mal%w%ware
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_mal%w%ware"
 goto dk_done
@@ -360,7 +356,6 @@ if /i "!tstresult2!"=="FullLanguage" (
 cmd /c "%psc% ""try {[System.AppDomain]::CurrentDomain.GetAssemblies(); [System.Math]::Sqrt(144)} catch {Exit 3}""" %nul%
 if !errorlevel!==3 (
 echo Windows Powershell failed to load .NET command. Aborting...
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 goto dk_done
@@ -381,7 +376,6 @@ echo Installed Antivirus - Microsoft Defender for Endpoint
 cmd /c "%psc% ""$av = Get-WmiObject -Namespace root\SecurityCenter2 -Class AntiVirusProduct; $n = @(); foreach ($i in $av) { $n += $i.displayName }; if ($n) { Write-Host ('Installed Antivirus - ' + ($n -join ', '))}"""
 )
 
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -604,7 +598,6 @@ echo:
 if not defined results (
 call :dk_color %Blue% "Go back to Main Menu, select Troubleshoot and run DISM Restore and SFC Scan options."
 call :dk_color %Blue% "After that, restart system and try activation again."
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "If it still shows the same error, do this - " %_Yellow% " %mas%in-place_repair_upgrade"
 )
@@ -618,7 +611,6 @@ echo .NET 3.5 Framework is corrupt or missing. Aborting...
 if exist "%SysPath%\spp\tokens\skus\Security-SPP-Component-SKU-Embedded" (
 echo Install .NET Framework 4.8 and Windows Management Framework 5.1
 )
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -632,7 +624,6 @@ if !errorlevel! EQU 1051 (
 %eline%
 echo Evaluation WLMS service is running, %_slser% service can not be stopped. Aborting...
 echo Install Non-Eval version for Windows build %winbuild%.
-echo:
 set fixes=%fixes% %mas%troubleshoot
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%troubleshoot"
 goto dk_done
@@ -772,7 +763,7 @@ if defined _vis goto :ts_winvista
 
 set tempid=
 if /i %tsmethod%==KMS4k (set keytype=ks) else (set keytype=zero)
-for /f "delims=" %%a in ('%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':wintsid\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (
+for /f "delims=" %%a in ('%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':wintsid\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (
 echo "%%a" | findstr /r ".*-.*-.*-.*-.*" %nul1% && (set tsids=!tsids! %%a& set tempid=%%a)
 )
 
@@ -1062,7 +1053,7 @@ goto :ts_esu
 )
 
 set resetstuff=1
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':tsforge\:.*';. ([scriptblock]::Create($f[1]))"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':tsforge\:.*';. ([scriptblock]::Create($f[1]))"
 set resetstuff=
 if !errorlevel!==3 (
 set error=1
@@ -1101,7 +1092,7 @@ set esuexistsup=
 set esueditionlist=
 set esuexistbutnosup=
 
-for %%# in (EnterpriseS IoTEnterpriseS IoTEnterpriseSK) do (if /i %tsedition%==%%# set isltsc=1)
+if %winbuild% GTR 14393 for %%# in (EnterpriseS IoTEnterpriseS IoTEnterpriseSK) do (if /i %tsedition%==%%# set isltsc=1)
 if exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-Server*Edition~*.mum" set isServer=1
 
 if /i %tsedition%==Embedded (
@@ -1139,11 +1130,18 @@ REM Windows8.1
 11be7019-a309-4763-9a09-091d1722ffe3_Client-FES-ESU-Year3[1-3y]_-EmbeddedIndustry-EmbeddedIndustryE-
 REM WindowsServer2012/2012R2
 55b1dd2d-2209-4ea0-a805-06298bad25b3_Server-ESU-Year3[1-3y]_-ServerDatacenter-ServerDatacenterCore-ServerDatacenterV-ServerDatacenterVCore-ServerStandard-ServerStandardCore-ServerStandardV-ServerStandardVCore-
+1b60284a-63b5-42da-8ec9-eaab825e2bc8_Server-ESU-Year5[4-5y]_-ServerDatacenter-ServerDatacenterCore-ServerDatacenterV-ServerDatacenterVCore-ServerStandard-ServerStandardCore-ServerStandardV-ServerStandardVCore-
 REM Windows10
 f520e45e-7413-4a34-a497-d2765967d094_Client-ESU-Year1_-%w10EsuEditions%-%w10EsuEditionsLaterAdded%
 1043add5-23b1-4afb-9a0f-64343c8f3f8d_Client-ESU-Year2_-%w10EsuEditions%-%w10EsuEditionsLaterAdded%
 83d49986-add3-41d7-ba33-87c7bfb5c0fb_Client-ESU-Year3_-%w10EsuEditions%-%w10EsuEditionsLaterAdded%
 0b533b5e-08b6-44f9-b885-c2de291ba456_Client-ESU-Year6[4-6y]_-%w10EsuEditions%-%w10EsuEditionsLaterAdded%
+REM WindowsServer2016
+91bcac0a-d7d3-4d2b-bd0c-72fed675f01b_Server-ESU-Year3[1-3y]_-ServerDatacenter-ServerDatacenterCore-ServerDatacenterV-ServerDatacenterVCore-ServerStandard-ServerStandardCore-ServerStandardV-ServerStandardVCore-
+4cd0ab30-73a4-4dde-972c-512f05be31df_Server-ESU-Year6[4-6y]_-ServerDatacenter-ServerDatacenterCore-ServerDatacenterV-ServerDatacenterVCore-ServerStandard-ServerStandardCore-ServerStandardV-ServerStandardVCore-
+REM Windows10LTSB2016
+f2571710-2c24-4677-8fb5-a07d41d3c1aa_Client-ESU-Year3[1-3y]_-EnterpriseS-EnterpriseSN-
+22badfe6-7d55-4485-874b-7ec317442134_Client-ESU-Year6[4-6y]_-EnterpriseS-EnterpriseSN-
 ) do (
 for /f "tokens=1-3 delims=_" %%A in ("%%#") do (
 echo "%allapps%" | find /i "%%A" %nul1% && (
@@ -1199,7 +1197,7 @@ goto :ts_off
 set esuavail=
 if defined _vis if defined isServer set esuavail=1
 if %winbuild% LEQ 7602 if not defined _vis if not defined isThinpc set esuavail=1
-if %winbuild% GTR 7602 if %winbuild% LSS 10240 if defined isServer set esuavail=1
+if %winbuild% GTR 7602 if %winbuild% LEQ 14393 if defined isServer set esuavail=1
 if %winbuild% GEQ 10240 if %winbuild% LEQ 19045 if not defined isServer set esuavail=1
 if %winbuild% EQU 9600 set esuavail=1
 
@@ -1317,9 +1315,9 @@ call :dk_color %Gray% "Checking Installed Office               [Not Found]"
 
 if defined ohub (
 echo:
-echo You only have the Office Dashboard app installed. You need to install the full version of Office.
+echo You only have the Office Dashboard app installed; you need to install the full version of Office.
 )
-call :dk_color %Blue% "Download and install Office from below URL and try again."
+call :dk_color %Blue% "Download and install Office from the URL below, then try again."
 if %_actwin%==0 set fixes=%fixes% %mas%genuine-installation-media
 call :dk_color %_Yellow% "%mas%genuine-installation-media"
 goto :ts_act
@@ -1547,10 +1545,10 @@ if %winbuild% GEQ 10586 (
 for %%# in ("%SysPath%\spp\tokens\skus\%tsedition%\*CSVLK*.xrm-ms") do (
 if defined _arr (set "_arr=!_arr!;"%SysPath%\spp\tokens\skus\%tsedition%\%%~nx#"") else (set "_arr="%SysPath%\spp\tokens\skus\%tsedition%\%%~nx#"")
 )
-if defined _arr %psc% "$sls = Get-WmiObject %sps%; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); InstallLicenseArr '!_arr!'" %nul%
+if defined _arr %psc% "$sls = Get-WmiObject %sps%; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); InstallLicenseArr '!_arr!'" %nul%
 )
 
-for /f "delims=" %%a in ('%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':wintsid\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (
+for /f "delims=" %%a in ('%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':wintsid\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (
 echo "%%a" | findstr /r ".*-.*-.*-.*-.*" %nul1% && (set tsids=!tsids! %%a& set tempid=%%a)
 )
 
@@ -1744,7 +1742,7 @@ echo Processing Reset of Rearm / Timers / Tamper / Lock...
 echo:
 
 set resetstuff=1
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':tsforge\:.*';. ([scriptblock]::Create($f[1]))"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':tsforge\:.*';. ([scriptblock]::Create($f[1]))"
 
 if %errorlevel%==3 (
 call :dk_color %Red% "Reset Failed."
@@ -1792,7 +1790,7 @@ if %errorlevel%==1 exit /b
 echo:
 echo Fetching Supported Activation IDs list. Please wait...
 
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':listactids\:.*';. ([scriptblock]::Create($f[1]))"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':listactids\:.*';. ([scriptblock]::Create($f[1]))"
 if %errorlevel%==3 (
 call :dk_color %Gray% "No supported activation ID found, aborting..."
 goto :dk_done
@@ -1942,7 +1940,7 @@ echo Writing TrustedStore data...
 if /i %tsmethod%==StaticCID (echo Depositing Static Confirmation ID...) else (echo Depositing Zero Confirmation ID...)
 )
 echo:
-%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':tsforge\:.*';. ([scriptblock]::Create($f[1])) %tsids%"
+%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':tsforge\:.*';. ([scriptblock]::Create($f[1])) %tsids%"
 if !errorlevel!==3 (
 if %_actman%==0 (if not defined showfix call :dk_color %Blue% "%_fixmsg%")
 set fixes=%fixes% %mas%troubleshoot
@@ -2227,7 +2225,7 @@ echo !_License! | find /i "Retail" %nul% && (set keytype=zero) || (set keytype=k
 set keytype=zero
 )
 
-for /f "delims=" %%a in ('%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':offtsid\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (
+for /f "delims=" %%a in ('%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':offtsid\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (
 echo "%%a" | findstr /r ".*-.*-.*-.*-.*" %nul1% && (set tsids=!tsids! %%a& set _actid=%%a)
 )
 set "_allactid=!tsids!"
@@ -2348,7 +2346,7 @@ for %%# in ("!_oLPath!\%_License%*.xrm-ms") do (
 if defined _arr (set "_arr=!_arr!;"!_oLPath!\%%~nx#"") else (set "_arr="!_oLPath!\%%~nx#"")
 )
 
-%psc% "$sls = Get-WmiObject %sps%; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); InstallLicenseArr '!_arr!'; InstallLicenseFile '"!_oLPath!\pkeyconfig-office.xrm-ms"'" %nul%
+%psc% "$sls = Get-WmiObject %sps%; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); InstallLicenseArr '!_arr!'; InstallLicenseFile '"!_oLPath!\pkeyconfig-office.xrm-ms"'" %nul%
 
 call :dk_actids 0ff1ce15-a989-479d-af46-f275c6370663
 echo "!allapps!" | find /i "!_actid!" %nul1% || (
@@ -2557,7 +2555,6 @@ if %upk_result%==1 echo Uninstalling Other/Grace Keys           [Successful]
 if %upk_result%==2 (
 call :dk_color %Red% "Uninstalling Other/Grace Keys           [Failed]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 echo:
 set showfix=1
@@ -2573,8 +2570,8 @@ exit /b
 :oh_licrefresh
 
 if exist "%SysPath%\spp\store_test\2.0\tokens.dat" (
-%psc% "Stop-Service sppsvc -force; $sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
-if !errorlevel! NEQ 0 %psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
+%psc% "Stop-Service sppsvc -force; $sls = Get-WmiObject SoftwareLicensingService; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
+if !errorlevel! NEQ 0 %psc% "$sls = Get-WmiObject SoftwareLicensingService; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
 )
 exit /b
 
@@ -2729,7 +2726,7 @@ for /f "tokens=3 delims=." %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Con
 if %_wmic% EQU 1 for /f "tokens=2 delims==" %%a in ('"wmic Path Win32_OperatingSystem Get OperatingSystemSKU /format:LIST" %nul6%') do if not errorlevel 1 set "wmiSKU=%%a"
 if %_wmic% EQU 0 for /f "tokens=1" %%a in ('%psc% "([WMI]'Win32_OperatingSystem=@').OperatingSystemSKU" %nul6%') do if not errorlevel 1 set "wmiSKU=%%a"
 
-if %winbuild% GEQ 15063 %psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':winsubstatus\:.*';. ([scriptblock]::Create($f[1]))" %nul2% | find /i "Subscription_is_activated" %nul% && (
+if %winbuild% GEQ 15063 %psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':winsubstatus\:.*';. ([scriptblock]::Create($f[1]))" %nul2% | find /i "Subscription_is_activated" %nul% && (
 if defined regSKU if defined slcSKU if not "%regSKU%"=="%slcSKU%" (
 set winsub=1
 set osSKU=%regSKU%
@@ -2793,7 +2790,6 @@ echo %keyecho% %~1 [Successful]
 call :dk_color %Red% "%keyecho% %~1 [Failed] %keyerror%"
 if not defined showfix (
 if defined altapplist call :dk_color %Red% "Activation ID not found for this key."
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 echo:
 set showfix=1
@@ -2917,7 +2913,6 @@ if %spperror% NEQ 1056 if %spperror% NEQ 0 (
 %eline%
 echo sc start %_slser% [Error Code: %spperror%]
 if %spperror% EQU 1053 (
-echo:
 call :dk_color %Blue% "Reboot your machine using the restart option and try again."
 call :dk_color %Blue% "If it still does not work, go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
 )
@@ -2999,7 +2994,6 @@ if not "%results%%pupfound%"=="" (
 if defined pupfound call :dk_color %Gray% "Checking PUP Activators                 [Found%pupfound%]"
 if defined results call :dk_color %Red% "Checking Probable Mal%w%ware Infection..."
 if defined results (call :dk_color %Red% "%results%"&set showfix=1)
-echo:
 set fixes=%fixes% %mas%remove_mal%w%ware
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_mal%w%ware"
 echo:
@@ -3027,7 +3021,6 @@ call :dk_chkmal
 sc query Null %nul% || (
 call :dk_color %Red% "Checking Sandboxing                     [Found, script may not work properly]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "If you are using any third-party antivirus, check if it is blocking the script."
 echo:
 )
@@ -3043,7 +3036,6 @@ reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\WinPE" /v InstRoot 
 
 call :dk_color %Red% "Checking WinPE                          [Found]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "WinPE mode found. Reboot the system and run in normal mode."
 echo:
 )
@@ -3058,7 +3050,6 @@ set showfix=1
 if defined safeboot_option (
 call :dk_color %Red% "Checking Boot Mode                      [%safeboot_option%]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "Safe mode found. Reboot the system and run in normal mode."
 echo:
 )
@@ -3077,7 +3068,6 @@ if /i not "%imagestate%"=="IMAGE_STATE_COMPLETE" (
 call :dk_color %Gray% "Checking Windows Setup State            [%imagestate%]"
 echo "%imagestate%" | find /i "RESEAL" %nul% && (
 if not defined showfix (
-echo:
 call :dk_color %Blue% "You need to run it in normal mode in case you are running it in Audit Mode."
 echo:
 )
@@ -3086,7 +3076,6 @@ set showfix=1
 )
 echo "%imagestate%" | find /i "UNDEPLOYABLE" %nul% && (
 if not defined showfix (
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "If the activation fails, do this - " %_Yellow% " %mas%in-place_repair_upgrade"
 echo:
@@ -3172,7 +3161,6 @@ if not defined showfix (
 echo:
 echo %serv_cste% | findstr /i "ClipSVC sppsvc" %nul% && (
 echo A registry fix has been applied to enable the disabled service.
-echo:
 call :dk_color %Blue% "Reboot your machine using the restart option to fix this error."
 ) || (
 set fixes=%fixes% %mas%in-place_repair_upgrade
@@ -3213,7 +3201,6 @@ if not defined showfix (
 set listwospp=%_serv:sppsvc=%
 echo %serv_e% | findstr /i "!listwospp!" %nul% && (
 set showfix=1
-echo:
 call :dk_color %Blue% "Reboot your machine using the restart option and run the script again."
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "If service error is still not fixed, do this - " %_Yellow% " %mas%in-place_repair_upgrade"
@@ -3245,7 +3232,6 @@ if defined wmifailed (
 call :dk_color %Red% "Checking WMI                            [Not Working]"
 
 if not defined showfix (
-echo:
 call :dk_color %Blue% "Go back to Main Menu, select Troubleshoot and run Fix WMI option."
 echo:
 )
@@ -3260,7 +3246,6 @@ set showfix=1
 if %winbuild% GEQ 7600 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\Plugins\Objects\msft:rm/algorithm/hwid/4.0" /f ba02fed39662 /d %nul% || (
 call :dk_color %Red% "Checking SPP Registry Key               [Incorrect ModuleId Found] [Most likely caused by gaming spoofers]"
 if not defined showfix (
-echo:
 set fixes=%fixes% %mas%issues_due_to_gaming_spoofers
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%issues_due_to_gaming_spoofers"
 echo:
@@ -3281,7 +3266,6 @@ if %winbuild% LSS 9200 set "tokenstore=%Systemdrive%\Windows\ServiceProfiles\Net
 if %winbuild% GEQ 9200 if /i not "!tokenstore!"=="%SysPath%\spp\store" if /i not "!tokenstore!"=="%SysPath%\spp\store\2.0" if /i not "!tokenstore!"=="%SysPath%\spp\store_test\2.0" (
 call :dk_color %Red% "Checking TokenStore Registry Key        [Correct Path Not Found] [!tokenstore!]"
 if not defined showfix (
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 echo:
@@ -3312,7 +3296,6 @@ call :dk_color %Gray% "Checking SPP Token Folder               [Not Found, Creat
 ) else (
 call :dk_color %Red% "Checking SPP Token Folder               [Not Found, Failed to Create] [%tokenstore%\]"
 if not defined showfix (
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 echo:
@@ -3357,7 +3340,6 @@ if !errorlevel!==3 set "permerror=Error Found In S-1-5-20 SPP"
 if defined permerror (
 call :dk_color %Red% "Checking SPP Permissions                [!permerror!]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 echo:
 )
@@ -3372,14 +3354,13 @@ set showfix=1
 
 set chkalp=
 set wpainfo=NotFound
-for /f "delims=" %%a in ('%psc% "$f=[System.IO.File]::ReadAllText('!_batp!') -split ':wpatest\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (set wpainfo=%%a)
+for /f "delims=" %%a in ('%psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':wpatest\:.*';. ([scriptblock]::Create($f[1]))" %nul6%') do (set wpainfo=%%a)
 for /f "delims=0123456789" %%i in ("%wpainfo%") do set chkalp=%%i
 
 if defined chkalp (
 call :dk_color %Red% "Checking WPA Registry Errors            [%wpainfo%]"
 if not defined showfix (
 echo "%wpainfo%" | find /i "Error Found" %nul% && (
-echo:
 call :dk_color %Blue% "Go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
 echo:
 set error=1
@@ -3392,7 +3373,6 @@ set wpainfo=a
 if not defined chkalp (
 if %wpainfo% GEQ 5000 (
 call :dk_color %Gray% "Checking WPA Registry Count             [%wpainfo%]"
-echo:
 call :dk_color %Blue% "A large number of WPA registries have been found, which may cause high CPU usage."
 call :dk_color %Blue% "Go back to Main Menu, select Troubleshoot and run Fix WPA Registry option."
 echo:
@@ -3408,7 +3388,6 @@ echo Checking WPA Registry Count             [%wpainfo%]
 reg query "HKU\S-1-5-20\Software\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform\PersistedTSReArmed" %nul% && (
 call :dk_color %Red% "Checking Rearm                          [System is Rearmed]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "Reboot your machine using the restart option to fix this error."
 echo:
 )
@@ -3420,7 +3399,6 @@ set showfix=1
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ClipSVC\Volatile\PersistedSystemState" %nul% && (
 call :dk_color %Red% "Checking ClipSVC PersistedSystemState   [Found]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "Reboot your machine using the restart option to fix this error."
 echo:
 )
@@ -3435,7 +3413,6 @@ set showfix=1
 if %error_code% NEQ 0 (
 call :dk_color %Red% "Checking SoftwareLicensingService       [Not Working] [%error_code%]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 call :dk_color %Blue% "If activation still fails then run Fix WPA Registry option."
 echo:
@@ -3451,7 +3428,7 @@ set showfix=1
 call :dk_actid 55c92734-d682-4d71-983e-d6ec3f16059f
 
 if not defined apps (
-%psc% "if (-not $env:_vis) {Start-Job { Stop-Service %_slser% -force } | Wait-Job -Timeout 20 | Out-Null}; $sls = Get-WmiObject SoftwareLicensingService; $f=[System.IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
+%psc% "if (-not $env:_vis) {Start-Job { Stop-Service %_slser% -force } | Wait-Job -Timeout 20 | Out-Null}; $sls = Get-WmiObject SoftwareLicensingService; $f=[IO.File]::ReadAllText('!_batp!') -split ':xrm\:.*';. ([scriptblock]::Create($f[1])); ReinstallLicenses" %nul%
 if not defined _vis if !errorlevel! NEQ 0 set rlicfailed=1
 call :dk_actid 55c92734-d682-4d71-983e-d6ec3f16059f
 )
@@ -3465,7 +3442,6 @@ call :dk_color %Gray% "Checking Activation IDs                 [Key Not Installe
 if not defined apps if not defined allapps (
 call :dk_color %Red% "Checking Activation IDs                 [Not found]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 call :dk_color %Blue% "If activation still fails then run Fix WPA Registry option."
 echo:
@@ -3475,7 +3451,6 @@ set showfix=1
 )
 
 if not defined showfix if defined rlicfailed (
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 call :dk_color %Blue% "If activation still fails then run Fix WPA Registry option."
 echo:
@@ -3493,7 +3468,6 @@ if not defined notwinact if exist "%SystemRoot%\Servicing\Packages\Microsoft-Win
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v EditionID %nul2% | find /i "Eval" %nul1% || (
 call :dk_color %Red% "Checking Eval Packages                  [License swapping found. Non-Eval licenses are installed in Eval Windows]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "License swapping is not the right way to upgrade to the full version. Learn the correct method at the link below."
 set fixes=%fixes% %mas%evaluation_editions
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%evaluation_editions"
@@ -3511,7 +3485,6 @@ set showfix=1
 reg query "HKU\S-1-5-20\Software\Microsoft\Windows NT\CurrentVersion" %nul% || (
 call :dk_color %Red% "Checking HKU\S-1-5-20 Registry          [Not Found]"
 if not defined showfix (
-echo:
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
 echo:
@@ -3549,6 +3522,13 @@ call :dk_color %Red% "Checking License Files                  [Not Found] [%osed
 if not exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-*-%osedition%-*.mum" (
 if not exist "%SystemRoot%\Servicing\Packages\Microsoft-Windows-%osedition%Edition*.mum" (
 call :dk_color %Red% "Checking Package Files                  [Not Found] [%osedition%]"
+if not defined showfix (
+set fixes=%fixes% %mas%in-place_repair_upgrade
+call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
+echo:
+)
+set error=1
+set showfix=1
 )
 )
 )
@@ -3595,7 +3575,6 @@ if defined _sppint (
 echo %_sppint% | find /i "PerfOptions" %nul% && (
 call :dk_color %Red% "Checking SPP Interference In IFEO       [%_sppint% - System might deactivate later]"
 if not defined showfix (
-echo:
 call :dk_color %Blue% "%_fixmsg%"
 echo:
 )
@@ -3630,7 +3609,6 @@ if "!taskinfo!"=="" set "taskinfo=Not Found"
 
 call :dk_color %Gray% "Checking SvcRestartTask Status          [!taskinfo!. System might deactivate later.]"
 if not defined showfix (
-echo:
 echo "!taskinfo!" | findstr /i "Removed Not Found" %nul1% && (
 set fixes=%fixes% %mas%in-place_repair_upgrade
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%in-place_repair_upgrade"
