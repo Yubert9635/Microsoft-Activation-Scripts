@@ -1,4 +1,4 @@
-@set masver=3.11
+@set masver=3.12
 @echo off
 
 
@@ -42,6 +42,18 @@ set "Path=%SystemRoot%\Sysnative;%SystemRoot%;%SystemRoot%\Sysnative\Wbem;%Syste
 
 set "ComSpec=%SysPath%\cmd.exe"
 set "PSModulePath=%ProgramFiles%\WindowsPowerShell\Modules;%SysPath%\WindowsPowerShell\v1.0\Modules"
+
+cd /d "%SysPath%"
+
+:: Workaround for https://github.com/microsoft/terminal/issues/15212, when %0 starts with a quote %0 parameter expansion is not specialcased.
+:: Changing %0 to something that is not quoted bypasses the issue.
+goto arg_workaround_end
+:arg_workaround
+set "_cmdf=%~f0"
+exit /b
+:arg_workaround_end
+
+call :arg_workaround
 
 set re1=
 set re2=
@@ -120,8 +132,7 @@ cls
 
 ::  Check LF line ending
 
-pushd "%~dp0"
->nul findstr /v "$" "%~nx0" && (
+>nul findstr /v "$" "%_cmdf%" && (
 echo:
 echo Error - Script either has LF line ending issue or an empty line at the end of the script is missing.
 echo:
@@ -130,10 +141,8 @@ echo Check this webpage for help - %mas%troubleshoot
 echo:
 echo:
 ping 127.0.0.1 -n 20 >nul
-popd
 exit /b
 )
-popd
 
 ::========================================================================================================================================
 
@@ -205,10 +214,9 @@ goto dk_done
 set "_work=%~dp0"
 if "%_work:~-1%"=="\" set "_work=%_work:~0,-1%"
 
-set "_batf=%~f0"
-set "_batp=%_batf:'=''%"
+set "_batp=%_cmdf:'=''%"
 
-set _PSarg="""%~f0""" -el %_args%
+set _PSarg="""%_cmdf%""" -el %_args%
 set _PSarg=%_PSarg:'=''%
 
 set "_ttemp=%userprofile%\AppData\Local\Temp"
@@ -217,7 +225,7 @@ setlocal EnableDelayedExpansion
 
 ::========================================================================================================================================
 
-echo "!_batf!" | find /i "!_ttemp!" %nul1% && (
+echo "!_cmdf!" | find /i "!_ttemp!" %nul1% && (
 if /i not "!_work!"=="!_ttemp!" (
 %eline%
 echo The script was launched from the temp folder.
@@ -347,11 +355,11 @@ reg query HKCU\Console /v QuickEdit %nul2% | find /i "0x0" %nul1% && set resetQE
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 0 /f %nul1%
 
 if defined terminal (
-start conhost.exe "!_batf!" %_args% -qedit
+start conhost.exe "!_cmdf!" %_args% -qedit
 start reg add HKCU\Console /v QuickEdit /t REG_DWORD /d %resetQE% /f %nul1%
 exit /b
 ) else if %resetQE% EQU 1 (
-start cmd.exe /c ""!_batf!" %_args% -qedit"
+start cmd.exe /c ""!_cmdf!" %_args% -qedit"
 start reg add HKCU\Console /v QuickEdit /t REG_DWORD /d %resetQE% /f %nul1%
 exit /b
 )
@@ -407,7 +415,7 @@ title  HWID Activation %masver%
 
 echo:
 echo Initializing...
-call :dk_chkmal
+echo:
 
 for %%# in (
 sppsvc.exe
@@ -1201,15 +1209,15 @@ exit /b
 
 set w=
 set results=
-if exist "%ProgramFiles%\KM%w%Spico" set pupfound= KM%w%Spico 
+if exist "%ProgramFiles%\KM%w%Spico" set pupfound=[KM%w%Spico] 
 if not defined pupfound (
-reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\taskcache\tasks" /f Path /s | find /i "AutoPico" %nul% && set pupfound= KM%w%Spico 
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\taskcache\tasks" /f Path /s | find /i "AutoPico" %nul% && set pupfound=[KM%w%Spico] 
 )
 
 set hcount=0
 for %%# in (avira.com kaspersky.com virustotal.com mcafee.com) do (
 find /i "%%#" %SysPath%\drivers\etc\hosts %nul% && set /a hcount+=1)
-if %hcount%==4 set "results=[Antivirus URLs are blocked in hosts]"
+if %hcount%==4 set "results=[Antivirus Domains Blocked In Hosts File] "
 
 sc start %_slser% %nul%
 echo "%errorlevel%" | findstr "577 225" %nul% && (
@@ -1219,9 +1227,9 @@ if not exist %SysPath%\%_slexe% if not exist %SysPath%\alg.exe (set "results=%re
 )
 
 if not "%results%%pupfound%"=="" (
-if defined pupfound call :dk_color %Gray% "Checking PUP Activators                 [Found%pupfound%]"
-if defined results call :dk_color %Red% "Checking Probable Mal%w%ware Infection..."
-if defined results (call :dk_color %Red% "%results%"&set showfix=1)
+if defined pupfound call :dk_color %Gray% "Checking PUP Activators                 %pupfound%"
+if defined results call :dk_color %Red% "Checking for Mal%w%ware Infection...       %results%"
+call :dk_color %Gray% "It is highly likely that your Windows install is infected with mal%w%ware. Windows may fail to activate."
 set fixes=%fixes% %mas%remove_mal%w%ware
 call :dk_color2 %Blue% "Check this webpage for help - " %_Yellow% " %mas%remove_mal%w%ware"
 echo:
@@ -1239,6 +1247,7 @@ exit /b
 
 :dk_errorcheck
 
+echo:
 set showfix=
 call :dk_chkmal
 
@@ -1938,7 +1947,7 @@ if %_unattended%==1 timeout /t 2 & exit /b
 
 if defined fixes (
 call :dk_color %White% "Follow ALL the ABOVE blue lines.   "
-call :dk_color2 %Blue% "Press [1] to Open Support Webpage " %Gray% " Press [0] to Ignore"
+call :dk_color2 %Blue% "Press [1] to Open Support Webpage " %Gray% " Press [0] to Go Back"
 choice /C:10 /N
 if !errorlevel!==2 exit /b
 if !errorlevel!==1 (start %selfgit% & start %github% & for %%# in (%fixes%) do (start %%#))
@@ -2020,7 +2029,7 @@ set key=%%B
 REM Generate ticket
 
 if %1==ticket if "%key%"=="%%B" (
-set "SessionIdStr=OSMajorVersion=5;OSMinorVersion=1;OSPlatformId=2;PP=0;Pfn=Microsoft.Windows.%%C.%%D_8wekyb3d8bbwe;PKeyIID=465145217131314304264339481117862266242033457260311819664735280;"
+set "SessionIdStr=OSMajorVersion=5;OSMinorVersion=1;OSPlatformId=2;PP=0;Pfn=Microsoft.Windows.%%C.%%D_8wekyb3d8bbwe;PKeyIID=221306452340115677963964261259250411589493550039199940431586886;"
 %psc% "$f=[IO.File]::ReadAllText('!_batp!') -split ':sign\:.*';. ([scriptblock]::Create($f[1]))"
 )
 
